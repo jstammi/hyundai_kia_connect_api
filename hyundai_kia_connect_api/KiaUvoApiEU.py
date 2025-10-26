@@ -1138,7 +1138,7 @@ class KiaUvoApiEU(ApiImplType1):
             authorization_code = "".join(parse_qs(parsed_url.query)["code"])
             return authorization_code
         elif BRANDS[self.brand] == BRAND_KIA:
-            session = self.session.session()
+            session = requests.Session()
             session.headers.update({"User-Agent": USER_AGENT_MOZILLA})
             url = self.LOGIN_FORM_HOST + "/auth/account/signin"
             headers = {"content-type": "application/x-www-form-urlencoded"}
