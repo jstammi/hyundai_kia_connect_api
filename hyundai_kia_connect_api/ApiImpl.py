@@ -78,9 +78,14 @@ class ApiImpl:
     temperature_range = None
     previous_latitude: float = None
     previous_longitude: float = None
+    session : requests.Session = None
 
     def __init__(self) -> None:
         """Initialize."""
+        self.session = self.create_session()
+
+    def create_session(self) -> requests.Session:
+        return requests.Session()
 
     def login(self, username: str, password: str) -> Token:
         """Login into cloud endpoints and return Token"""
@@ -147,7 +152,7 @@ class ApiImpl:
                     + email_parameter
                 )
                 headers = {"user-agent": "curl/7.81.0"}
-                response = requests.get(url, headers=headers)
+                response = self.session.get(url, headers=headers)
                 try:
                     response = response.json()
                 except JSONDecodeError:

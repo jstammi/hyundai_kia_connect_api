@@ -82,7 +82,7 @@ class KiaUvoApiIN(ApiImplType1):
 
     def __init__(self, brand: int) -> None:
         # Strip language variants (e.g. en-Gb)
-        super().__init__()
+        ApiImplType1.__init__(self)
         self.brand = brand
 
         if BRANDS[brand] == BRAND_HYUNDAI:

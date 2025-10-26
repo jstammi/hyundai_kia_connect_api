@@ -68,6 +68,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
     last_loc_timestamp = dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=3)
 
     def __init__(self, region: int, brand: int, language: str):
+        ApiImpl.__init__(self)
         self.LANGUAGE: str = language
         self.BASE_URL: str = "api.telematics.hyundaiusa.com"
         self.LOGIN_API: str = "https://" + self.BASE_URL + "/v2/ac/"
@@ -105,8 +106,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
             "client_id": "m66129Bb-em93-SPAHYN-bZ91-am4540zp19920",
             "clientSecret": "v558o935-6nne-423i-baa8",
         }
-        self.sessions = requests.Session()
-        self.sessions.mount(origin, cipherAdapter())
+        self.session.mount(origin, cipherAdapter())
 
         _LOGGER.debug(f"{DOMAIN} - initial API headers: {self.API_HEADERS}")
 
@@ -129,7 +129,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
         url = self.LOGIN_API + "oauth/token"
         data = {"username": username, "password": password}
 
-        response = self.sessions.post(url, json=data, headers=self.API_HEADERS)
+        response = self.session.post(url, json=data, headers=self.API_HEADERS)
         _LOGGER.debug(f"{DOMAIN} - Sign In Response {response.text}")
         response = response.json()
         access_token = response["access_token"]
@@ -151,7 +151,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
     def _get_vehicle_details(self, token: Token, vehicle: Vehicle):
         url = self.API_URL + "enrollment/details/" + token.username
         headers = self._get_authenticated_headers(token)
-        response = self.sessions.get(url, headers=headers)
+        response = self.session.get(url, headers=headers)
         _LOGGER.debug(f"{DOMAIN} - Get Vehicles Response {response.text}")
         response = response.json()
         for entry in response["enrolledVehicleDetails"]:
@@ -168,7 +168,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
         if refresh:
             headers["REFRESH"] = "true"
 
-        response = self.sessions.get(url, headers=headers)
+        response = self.session.get(url, headers=headers)
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - get_vehicle_status response {response}")
 
@@ -194,7 +194,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
         # This header is sent by the MyHyundai app, but doesn't seem to do anything
         # headers["offset"] = "-5"
 
-        response = self.sessions.get(url, headers=headers)
+        response = self.session.get(url, headers=headers)
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - get_ev_trip_details response {response}")
 
@@ -213,7 +213,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
         url = self.API_URL + "rcs/rfc/findMyCar"
         headers = self._get_vehicle_headers(token, vehicle)
         try:
-            response = self.sessions.get(url, headers=headers)
+            response = self.session.get(url, headers=headers)
             response_json = response.json()
             _LOGGER.debug(f"{DOMAIN} - Get Vehicle Location {response_json}")
             if response_json.get("coord") is not None:
@@ -723,7 +723,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
     def get_vehicles(self, token: Token):
         url = self.API_URL + "enrollment/details/" + token.username
         headers = self._get_authenticated_headers(token)
-        response = self.sessions.get(url, headers=headers)
+        response = self.session.get(url, headers=headers)
         _LOGGER.debug(f"{DOMAIN} - Get Vehicles Response {response.text}")
         response = response.json()
         result = []
@@ -765,7 +765,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
         headers["APPCLOUD-VIN"] = vehicle.VIN
 
         data = {"userName": token.username, "vin": vehicle.VIN}
-        response = self.sessions.post(url, headers=headers, json=data)
+        response = self.session.post(url, headers=headers, json=data)
         # response_headers = response.headers
         # response = response.json()
         # action_status = self.check_action_status(token, headers["pAuth"], response_headers["transactionId"])  # noqa
@@ -842,7 +842,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
             }
         _LOGGER.debug(f"{DOMAIN} - Start engine data: {data}")
 
-        response = self.sessions.post(url, json=data, headers=headers)
+        response = self.session.post(url, json=data, headers=headers)
         _LOGGER.debug(
             f"{DOMAIN} - Start engine response status code: {response.status_code}"
         )
@@ -860,7 +860,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
 
         _LOGGER.debug(f"{DOMAIN} - Stop engine headers: {headers}")
 
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         _LOGGER.debug(
             f"{DOMAIN} - Stop engine response status code: {response.status_code}"
         )
@@ -876,7 +876,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
         headers = self._get_vehicle_headers(token, vehicle)
         _LOGGER.debug(f"{DOMAIN} - Start charging headers: {headers}")
 
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         _LOGGER.debug(
             f"{DOMAIN} - Start charge response status code: {response.status_code}"
         )
@@ -892,7 +892,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
         headers = self._get_vehicle_headers(token, vehicle)
         _LOGGER.debug(f"{DOMAIN} - Stop charging headers: {headers}")
 
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         _LOGGER.debug(
             f"{DOMAIN} - Stop charge response status code: {response.status_code}"
         )
@@ -924,7 +924,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
 
         _LOGGER.debug(f"{DOMAIN} - Setting charge limits body: {data}")
 
-        response = self.sessions.post(url, json=data, headers=headers)
+        response = self.session.post(url, json=data, headers=headers)
         _LOGGER.debug(
             f"{DOMAIN} - Setting charge limits response status code: {response.status_code}"  # noqa
         )

@@ -108,6 +108,7 @@ class KiaUvoApiCN(ApiImplType1):
     temperature_range = [x * 0.5 for x in range(28, 60)]
 
     def __init__(self, region: int, brand: int, language: str) -> None:
+        ApiImplType1.__init__(self)
         if BRANDS[brand] == BRAND_KIA:
             self.BASE_DOMAIN: str = "prd.cn-ccapi.kia.com"
             self.CCSP_SERVICE_ID: str = "9d5df92a-06ae-435f-b459-8304f2efcc67"
@@ -186,7 +187,7 @@ class KiaUvoApiCN(ApiImplType1):
 
     def get_vehicles(self, token: Token) -> list[Vehicle]:
         url = self.SPA_API_URL + "vehicles"
-        response = requests.get(
+        response = self.session.get(
             url, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Get Vehicles Response: {response}")

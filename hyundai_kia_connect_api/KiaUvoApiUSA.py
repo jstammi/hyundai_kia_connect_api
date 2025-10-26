@@ -106,6 +106,7 @@ class KiaUvoApiUSA(ApiImpl):
     """KiaUvoApiUSA"""
 
     def __init__(self, region: int, brand: int, language) -> None:
+        ApiImpl.__init__(self)
         self.LANGUAGE: str = language
         self.temperature_range = range(62, 83)
 

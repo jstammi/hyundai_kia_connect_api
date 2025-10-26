@@ -79,6 +79,7 @@ class KiaUvoApiEU(ApiImplType1):
     temperature_range = [x * 0.5 for x in range(28, 60)]
 
     def __init__(self, region: int, brand: int, language: str) -> None:
+        ApiImplType1.__init__(self)
         language = language.lower()
         # Strip language variants (e.g. en-Gb)
         if len(language) > 2:
