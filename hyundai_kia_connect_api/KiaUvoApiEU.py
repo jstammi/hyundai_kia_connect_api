@@ -1117,7 +1117,7 @@ class KiaUvoApiEU(ApiImplType1):
         )
 
         _LOGGER.debug(f"{DOMAIN} - Get cookies request: {url}")
-        session = requests.Session()
+        session = self.create_session()
         _ = session.get(url)
         _LOGGER.debug(f"{DOMAIN} - Get cookies response: {session.cookies.get_dict()}")
         return session.cookies.get_dict()
@@ -1138,7 +1138,7 @@ class KiaUvoApiEU(ApiImplType1):
             authorization_code = "".join(parse_qs(parsed_url.query)["code"])
             return authorization_code
         elif BRANDS[self.brand] == BRAND_KIA:
-            session = requests.Session()
+            session = self.create_session()
             session.headers.update({"User-Agent": USER_AGENT_MOZILLA})
             url = self.LOGIN_FORM_HOST + "/auth/account/signin"
             headers = {"content-type": "application/x-www-form-urlencoded"}

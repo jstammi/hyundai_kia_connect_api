@@ -85,7 +85,10 @@ class ApiImpl:
         self.session = self.create_session()
 
     def create_session(self) -> requests.Session:
-        return requests.Session()
+        session = requests.Session()
+        if self.session:
+            session.hooks['response'].extend(self.session.hooks['response'])
+        return session
 
     def login(self, username: str, password: str) -> Token:
         """Login into cloud endpoints and return Token"""
