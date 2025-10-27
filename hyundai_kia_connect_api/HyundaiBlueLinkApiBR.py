@@ -37,6 +37,7 @@ class HyundaiBlueLinkApiBR(ApiImpl):
     data_timezone = dt.timezone(dt.timedelta(hours=-3))  # Brazil (BRT/BRST)
 
     def __init__(self, region: int, brand: int, language: str = "pt-BR"):
+        ApiImpl.__init__(self)
         if BRANDS[brand] != BRAND_HYUNDAI:
             raise APIError(
                 f"Unknown brand {BRANDS[brand]} for region Brazil. "
@@ -66,7 +67,6 @@ class HyundaiBlueLinkApiBR(ApiImpl):
             "ccuCCS2ProtocolSupport": "0",
         }
 
-        self.session = requests.Session()
         self.temperature_range = range(62, 82)
 
     def _build_api_url(self, path: str) -> str:

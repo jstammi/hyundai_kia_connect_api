@@ -126,6 +126,7 @@ class KiaUvoApiCA(ApiImpl):
     temperature_range_model_year = 2020
 
     def __init__(self, region: int, brand: int, language: str) -> None:
+        ApiImpl.__init__(self)
         self.LANGUAGE: str = language
         self.brand = brand
         if BRANDS[brand] == BRAND_KIA:
@@ -153,13 +154,9 @@ class KiaUvoApiCA(ApiImpl):
             "sec-fetch-mode": "cors",
             "sec-fetch-site": "same-origin",
         }
-        self._sessions = None
 
-    @property
-    def sessions(self):
-        if not self._sessions:
-            self._sessions = RetrySession(max_retries=4, delay=2, backoff=2)
-        return self._sessions
+    def create_session(self) -> requests.Session:
+        return RetrySession(max_retries=4, delay=2, backoff=2)
 
     def _check_response_for_errors(self, response: dict) -> None:
         """
@@ -193,7 +190,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["Deviceid"] = (
             "TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzEzOC4wLjAuMCBTYWZhcmkvNTM3LjM2IEVkZy8xMzguMC4wLjArV2luMzIrMTIzNCsxMjM0"
         )
-        response = self.sessions.post(url, json=data, headers=headers)
+        response = self.session.post(url, json=data, headers=headers)
         _LOGGER.debug(f"{DOMAIN} - Sign In Response {response.text}")
         response = response.json()
         self._check_response_for_errors(response)
@@ -221,7 +218,7 @@ class KiaUvoApiCA(ApiImpl):
         url = self.API_URL + "ntcmsgcnt"
         headers = self.API_HEADERS
         headers["accessToken"] = token.access_token
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         _LOGGER.debug(f"{DOMAIN} - Test Token Response {response.text}")
         response = response.json()
         token_errors = ["7403", "7602"]
@@ -236,7 +233,7 @@ class KiaUvoApiCA(ApiImpl):
         url = self.API_URL + "vhcllst"
         headers = self.API_HEADERS
         headers["accessToken"] = token.access_token
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         _LOGGER.debug(f"{DOMAIN} - Get Vehicles Response {response.text}")
         response = response.json()
         result = []
@@ -545,7 +542,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["accessToken"] = token.access_token
         headers["vehicleId"] = vehicle.id
 
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         if response.ok:
             response = response.json()
             _LOGGER.debug(
@@ -587,7 +584,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["accessToken"] = token.access_token
         headers["vehicleId"] = vehicle.id
 
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - get_cached_vehicle_status response {response}")
         response = response["result"]["status"]
@@ -603,7 +600,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["accessToken"] = token.access_token
         headers["vehicleId"] = vehicle.id
 
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         response = response.json()
 
         _LOGGER.debug(f"{DOMAIN} - Received forced vehicle data {response}")
@@ -618,7 +615,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["accessToken"] = token.access_token
         headers["vehicleId"] = vehicle.id
         url = self.API_URL + "nxtsvc"
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - Get Service status data {response}")
         response = response["result"]["maintenanceInfo"]
@@ -632,7 +629,7 @@ class KiaUvoApiCA(ApiImpl):
         try:
             headers["pAuth"] = self._get_pin_token(token, vehicle)
 
-            response = self.sessions.post(
+            response = self.session.post(
                 url, headers=headers, data=json.dumps({"pin": token.pin})
             )
             response = response.json()
@@ -650,7 +647,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["accessToken"] = token.access_token
         headers["vehicleId"] = vehicle.id
 
-        response = self.sessions.post(
+        response = self.session.post(
             url, headers=headers, data=json.dumps({"pin": token.pin})
         )
         _LOGGER.debug(f"{DOMAIN} - Received Pin validation response {response.json()}")
@@ -671,7 +668,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["vehicleId"] = vehicle.id
         headers["pAuth"] = self._get_pin_token(token, vehicle)
 
-        response = self.sessions.post(
+        response = self.session.post(
             url, headers=headers, data=json.dumps({"pin": token.pin})
         )
         response_headers = response.headers
@@ -782,7 +779,7 @@ class KiaUvoApiCA(ApiImpl):
             }
         _LOGGER.debug(f"{DOMAIN} - Planned start_climate payload {payload}")
 
-        response = self.sessions.post(url, headers=headers, data=json.dumps(payload))
+        response = self.session.post(url, headers=headers, data=json.dumps(payload))
         response_headers = response.headers
         response = response.json()
 
@@ -799,7 +796,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["vehicleId"] = vehicle.id
         headers["pAuth"] = self._get_pin_token(token, vehicle)
 
-        response = self.sessions.post(
+        response = self.session.post(
             url, headers=headers, data=json.dumps({"pin": token.pin})
         )
         response_headers = response.headers
@@ -826,7 +823,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["vehicleId"] = vehicle.id
         headers["transactionId"] = action_id
         headers["pAuth"] = self._get_pin_token(token, vehicle)
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         response = response.json()
 
         last_action_completed = (
@@ -862,7 +859,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["pAuth"] = self._get_pin_token(token, vehicle)
         data = json.dumps({"pin": token.pin})
         _LOGGER.debug(f"{DOMAIN} - Planned start_charge payload {data}")
-        response = self.sessions.post(
+        response = self.session.post(
             url, headers=headers, data=json.dumps({"pin": token.pin})
         )
         response_headers = response.headers
@@ -878,7 +875,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["vehicleId"] = vehicle.id
         headers["pAuth"] = self._get_pin_token(token, vehicle)
 
-        response = self.sessions.post(
+        response = self.session.post(
             url, headers=headers, data=json.dumps({"pin": token.pin})
         )
         response_headers = response.headers
@@ -906,7 +903,7 @@ class KiaUvoApiCA(ApiImpl):
         headers["accessToken"] = token.access_token
         headers["vehicleId"] = vehicle.id
 
-        response = self.sessions.post(url, headers=headers)
+        response = self.session.post(url, headers=headers)
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - Received get_charge_limits: {response}")
 
@@ -935,7 +932,7 @@ class KiaUvoApiCA(ApiImpl):
             "pin": token.pin,
         }
 
-        response = self.sessions.post(url, headers=headers, data=json.dumps(payload))
+        response = self.session.post(url, headers=headers, data=json.dumps(payload))
         response_headers = response.headers
         response = response.json()
 

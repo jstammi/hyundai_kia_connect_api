@@ -106,6 +106,7 @@ class KiaUvoApiUSA(ApiImpl):
     """KiaUvoApiUSA"""
 
     def __init__(self, region: int, brand: int, language) -> None:
+        ApiImpl.__init__(self)
         self.LANGUAGE: str = language
         self.temperature_range = range(62, 83)
 
@@ -120,14 +121,11 @@ class KiaUvoApiUSA(ApiImpl):
 
         self.BASE_URL: str = "api.owners.kia.com"
         self.API_URL: str = "https://" + self.BASE_URL + "/apigw/v1/"
-        self._session = None
 
-    @property
-    def session(self):
-        if not self._session:
-            self._session = requests.Session()
-            self._session.mount("https://", KiaSSLAdapter())
-        return self._session
+    def create_session(self) -> requests.Session:
+        session = super().create_session()
+        session.mount("https://", KiaSSLAdapter())
+        return session
 
     def api_headers(self) -> dict:
         offset = time.localtime().tm_gmtoff / 60 / 60
