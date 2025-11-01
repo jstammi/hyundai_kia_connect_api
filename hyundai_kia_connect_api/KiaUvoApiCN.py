@@ -108,6 +108,7 @@ class KiaUvoApiCN(ApiImplType1):
     temperature_range = [x * 0.5 for x in range(28, 60)]
 
     def __init__(self, region: int, brand: int, language: str) -> None:
+        ApiImplType1.__init__(self)
         if BRANDS[brand] == BRAND_KIA:
             self.BASE_DOMAIN: str = "prd.cn-ccapi.kia.com"
             self.CCSP_SERVICE_ID: str = "9d5df92a-06ae-435f-b459-8304f2efcc67"
@@ -186,7 +187,7 @@ class KiaUvoApiCN(ApiImplType1):
 
     def get_vehicles(self, token: Token) -> list[Vehicle]:
         url = self.SPA_API_URL + "vehicles"
-        response = requests.get(
+        response = self.session.get(
             url, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Get Vehicles Response: {response}")
@@ -641,7 +642,7 @@ class KiaUvoApiCN(ApiImplType1):
     def _get_cached_vehicle_state(self, token: Token, vehicle: Vehicle) -> dict:
         url = self.SPA_API_URL + "vehicles/" + vehicle.id + "/status/latest"
 
-        response = requests.get(
+        response = self.session.get(
             url, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - get_cached_vehicle_status response: {response}")
@@ -654,7 +655,7 @@ class KiaUvoApiCN(ApiImplType1):
         url = self.SPA_API_URL + "vehicles/" + vehicle.id + "/location"
 
         try:
-            response = requests.get(
+            response = self.session.get(
                 url, headers=self._get_authenticated_headers(token)
             ).json()
             _LOGGER.debug(f"{DOMAIN} - _get_location response: {response}")
@@ -666,7 +667,7 @@ class KiaUvoApiCN(ApiImplType1):
 
     def _get_forced_vehicle_state(self, token: Token, vehicle: Vehicle) -> dict:
         url = self.SPA_API_URL + "vehicles/" + vehicle.id + "/status"
-        response = requests.get(
+        response = self.session.get(
             url, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Received forced vehicle data: {response}")
@@ -682,7 +683,7 @@ class KiaUvoApiCN(ApiImplType1):
 
         payload = {"action": action.value, "deviceId": token.device_id}
         _LOGGER.debug(f"{DOMAIN} - Lock Action Request: {payload}")
-        response = requests.post(
+        response = self.session.post(
             url, json=payload, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Lock Action Response: {response}")
@@ -696,7 +697,7 @@ class KiaUvoApiCN(ApiImplType1):
 
         payload = {"action": action.value, "deviceId": token.device_id}
         _LOGGER.debug(f"{DOMAIN} - Charge Port Action Request: {payload}")
-        response = requests.post(
+        response = self.session.post(
             url, json=payload, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Charge Port Action Response: {response}")
@@ -736,7 +737,7 @@ class KiaUvoApiCN(ApiImplType1):
             "unit": "C",
         }
         _LOGGER.debug(f"{DOMAIN} - Start Climate Action Request: {payload}")
-        response = requests.post(
+        response = self.session.post(
             url, json=payload, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Start Climate Action Response: {response}")
@@ -749,7 +750,7 @@ class KiaUvoApiCN(ApiImplType1):
             "action": "stop",
         }
         _LOGGER.debug(f"{DOMAIN} - Stop Climate Action Request: {payload}")
-        response = requests.post(
+        response = self.session.post(
             url, json=payload, headers=self._get_control_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Stop Climate Action Response: {response}")
@@ -761,7 +762,7 @@ class KiaUvoApiCN(ApiImplType1):
 
         payload = {"action": "start", "deviceId": token.device_id}
         _LOGGER.debug(f"{DOMAIN} - Start Charge Action Request: {payload}")
-        response = requests.post(
+        response = self.session.post(
             url, json=payload, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Start Charge Action Response: {response}")
@@ -773,7 +774,7 @@ class KiaUvoApiCN(ApiImplType1):
 
         payload = {"action": "stop", "deviceId": token.device_id}
         _LOGGER.debug(f"{DOMAIN} - Stop Charge Action Request {payload}")
-        response = requests.post(
+        response = self.session.post(
             url, json=payload, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Stop Charge Action Response: {response}")
@@ -786,7 +787,7 @@ class KiaUvoApiCN(ApiImplType1):
         url = f"{self.SPA_API_URL}vehicles/{vehicle.id}/charge/target"
 
         _LOGGER.debug(f"{DOMAIN} - Get Charging Limits Request")
-        response = requests.get(
+        response = self.session.get(
             url, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Get Charging Limits Response: {response}")
@@ -811,7 +812,7 @@ class KiaUvoApiCN(ApiImplType1):
             payload = {"tripPeriodType": 1, "setTripDay": date_string}
 
         _LOGGER.debug(f"{DOMAIN} - get_trip_info Request {payload}")
-        response = requests.post(
+        response = self.session.post(
             url,
             json=payload,
             headers=self._get_authenticated_headers(token),
@@ -915,7 +916,7 @@ class KiaUvoApiCN(ApiImplType1):
     def _get_driving_info(self, token: Token, vehicle: Vehicle) -> dict:
         url = self.SPA_API_URL + "vehicles/" + vehicle.id + "/drvhistory"
 
-        responseAlltime = requests.post(
+        responseAlltime = self.session.post(
             url,
             json={"periodTarget": 1},
             headers=self._get_authenticated_headers(token),
@@ -924,7 +925,7 @@ class KiaUvoApiCN(ApiImplType1):
         _LOGGER.debug(f"{DOMAIN} - get_driving_info responseAlltime {responseAlltime}")
         _check_response_for_errors(responseAlltime)
 
-        response30d = requests.post(
+        response30d = self.session.post(
             url,
             json={"periodTarget": 0},
             headers=self._get_authenticated_headers(token),
@@ -982,7 +983,7 @@ class KiaUvoApiCN(ApiImplType1):
                 },
             ]
         }
-        response = requests.post(
+        response = self.session.post(
             url, json=body, headers=self._get_authenticated_headers(token)
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Set Charge Limits Response: {response}")
@@ -1010,7 +1011,7 @@ class KiaUvoApiCN(ApiImplType1):
             "User-Agent": USER_AGENT_OK_HTTP,
         }
 
-        response = requests.post(url, headers=headers, json=payload)
+        response = self.session.post(url, headers=headers, json=payload)
         response = response.json()
         _check_response_for_errors(response)
         _LOGGER.debug(f"{DOMAIN} - Get Device ID request: {headers} {payload}")
@@ -1033,7 +1034,7 @@ class KiaUvoApiCN(ApiImplType1):
         )
 
         _LOGGER.debug(f"{DOMAIN} - Get cookies request: {url}")
-        session = requests.Session()
+        session = self.create_session()
         _ = session.get(url)
         _LOGGER.debug(f"{DOMAIN} - Get cookies response: {session.cookies.get_dict()}")
         return session.cookies.get_dict()
@@ -1052,7 +1053,7 @@ class KiaUvoApiCN(ApiImplType1):
         url = self.USER_API_URL + "signin"
         headers = {"Content-type": "application/json"}
         data = {"email": username, "password": password}
-        response = requests.post(
+        response = self.session.post(
             url, json=data, headers=headers, cookies=cookies
         ).json()
         _LOGGER.debug(f"{DOMAIN} - Sign In Response: {response}")
@@ -1080,7 +1081,7 @@ class KiaUvoApiCN(ApiImplType1):
             + authorization_code
         )
         _LOGGER.debug(f"{DOMAIN} - Get Access Token Data: {headers}{data}")
-        response = requests.post(url, data=data, headers=headers)
+        response = self.session.post(url, data=data, headers=headers)
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - Get Access Token Response: {response}")
 
@@ -1107,7 +1108,7 @@ class KiaUvoApiCN(ApiImplType1):
             + authorization_code
         )
         _LOGGER.debug(f"{DOMAIN} - Get Refresh Token Data: {data}")
-        response = requests.post(url, data=data, headers=headers)
+        response = self.session.post(url, data=data, headers=headers)
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - Get Refresh Token Response: {response}")
         token_type = response["token_type"]
@@ -1126,7 +1127,7 @@ class KiaUvoApiCN(ApiImplType1):
 
         data = {"deviceId": token.device_id, "pin": token.pin}
         _LOGGER.debug(f"{DOMAIN} - Get Control Token Data: {data}")
-        response = requests.put(url, json=data, headers=headers)
+        response = self.session.put(url, json=data, headers=headers)
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - Get Control Token Response {response}")
         control_token = "Bearer " + response["controlToken"]
@@ -1167,7 +1168,7 @@ class KiaUvoApiCN(ApiImplType1):
             return ORDER_STATUS.TIMEOUT
 
         else:
-            response = requests.get(
+            response = self.session.get(
                 url, headers=self._get_authenticated_headers(token)
             ).json()
             _LOGGER.debug(f"{DOMAIN} - Check last action status Response: {response}")

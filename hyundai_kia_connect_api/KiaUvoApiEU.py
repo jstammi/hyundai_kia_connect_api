@@ -79,6 +79,7 @@ class KiaUvoApiEU(ApiImplType1):
     temperature_range = [x * 0.5 for x in range(28, 60)]
 
     def __init__(self, region: int, brand: int, language: str) -> None:
+        ApiImplType1.__init__(self)
         language = language.lower()
         # Strip language variants (e.g. en-Gb)
         if len(language) > 2:
@@ -247,7 +248,7 @@ class KiaUvoApiEU(ApiImplType1):
         else:
             url += "/status/latest"
 
-        response = requests.get(
+        response = self.session.get(
             url,
             headers=self._get_authenticated_headers(
                 token, vehicle.ccu_ccs2_protocol_support
@@ -779,7 +780,7 @@ class KiaUvoApiEU(ApiImplType1):
             url = url + "/status/latest"
         else:
             url = url + "/ccs2/carstatus/latest"
-        response = requests.get(
+        response = self.session.get(
             url,
             headers=self._get_authenticated_headers(
                 token, vehicle.ccu_ccs2_protocol_support
@@ -797,7 +798,7 @@ class KiaUvoApiEU(ApiImplType1):
         url = self.SPA_API_URL + "vehicles/" + vehicle.id + "/location"
 
         try:
-            response = requests.get(
+            response = self.session.get(
                 url,
                 headers=self._get_authenticated_headers(
                     token, vehicle.ccu_ccs2_protocol_support
@@ -812,7 +813,7 @@ class KiaUvoApiEU(ApiImplType1):
 
     def _get_forced_vehicle_state(self, token: Token, vehicle: Vehicle) -> dict:
         url = self.SPA_API_URL + "vehicles/" + vehicle.id + "/status"
-        response = requests.get(
+        response = self.session.get(
             url,
             headers=self._get_authenticated_headers(
                 token, vehicle.ccu_ccs2_protocol_support
@@ -831,7 +832,7 @@ class KiaUvoApiEU(ApiImplType1):
 
         payload = {"action": action.value}
         _LOGGER.debug(f"{DOMAIN} - Charge Port Action Request: {payload}")
-        response = requests.post(
+        response = self.session.post(
             url, json=payload, headers=self._get_control_headers(token, vehicle)
         ).json()
 
@@ -846,7 +847,7 @@ class KiaUvoApiEU(ApiImplType1):
         url = f"{self.SPA_API_URL}vehicles/{vehicle.id}/charge/target"
 
         _LOGGER.debug(f"{DOMAIN} - Get Charging Limits Request")
-        response = requests.get(
+        response = self.session.get(
             url,
             headers=self._get_authenticated_headers(
                 token, vehicle.ccu_ccs2_protocol_support
@@ -874,7 +875,7 @@ class KiaUvoApiEU(ApiImplType1):
             payload = {"tripPeriodType": 1, "setTripDay": date_string}
 
         _LOGGER.debug(f"{DOMAIN} - get_trip_info Request {payload}")
-        response = requests.post(
+        response = self.session.post(
             url,
             json=payload,
             headers=self._get_authenticated_headers(
@@ -981,7 +982,7 @@ class KiaUvoApiEU(ApiImplType1):
     def _get_driving_info(self, token: Token, vehicle: Vehicle) -> dict:
         url = self.SPA_API_URL + "vehicles/" + vehicle.id + "/drvhistory"
 
-        responseAlltime = requests.post(
+        responseAlltime = self.session.post(
             url,
             json={"periodTarget": 1},
             headers=self._get_authenticated_headers(
@@ -992,7 +993,7 @@ class KiaUvoApiEU(ApiImplType1):
         _LOGGER.debug(f"{DOMAIN} - get_driving_info responseAlltime {responseAlltime}")
         _check_response_for_errors(responseAlltime)
 
-        response30d = requests.post(
+        response30d = self.session.post(
             url,
             json={"periodTarget": 0},
             headers=self._get_authenticated_headers(
@@ -1095,7 +1096,7 @@ class KiaUvoApiEU(ApiImplType1):
         }
 
         _LOGGER.debug(f"{DOMAIN} - Get Device ID request: {url} {headers} {payload}")
-        response = requests.post(url, headers=headers, json=payload)
+        response = self.session.post(url, headers=headers, json=payload)
         response = response.json()
         _check_response_for_errors(response)
         _LOGGER.debug(f"{DOMAIN} - Get Device ID response: {response}")
@@ -1116,7 +1117,7 @@ class KiaUvoApiEU(ApiImplType1):
         )
 
         _LOGGER.debug(f"{DOMAIN} - Get cookies request: {url}")
-        session = requests.Session()
+        session = self.create_session()
         _ = session.get(url)
         _LOGGER.debug(f"{DOMAIN} - Get cookies response: {session.cookies.get_dict()}")
         return session.cookies.get_dict()
@@ -1129,7 +1130,7 @@ class KiaUvoApiEU(ApiImplType1):
             url = self.USER_API_URL + "signin"
             headers = {"Content-type": "application/json"}
             data = {"email": username, "password": password}
-            response = requests.post(
+            response = self.session.post(
                 url, json=data, headers=headers, cookies=cookies
             ).json()
             _LOGGER.debug(f"{DOMAIN} - Sign In Response: {response}")
@@ -1137,7 +1138,7 @@ class KiaUvoApiEU(ApiImplType1):
             authorization_code = "".join(parse_qs(parsed_url.query)["code"])
             return authorization_code
         elif BRANDS[self.brand] == BRAND_KIA:
-            session = requests.session()
+            session = self.create_session()
             session.headers.update({"User-Agent": USER_AGENT_MOZILLA})
             url = self.LOGIN_FORM_HOST + "/auth/account/signin"
             headers = {"content-type": "application/x-www-form-urlencoded"}
@@ -1207,7 +1208,7 @@ class KiaUvoApiEU(ApiImplType1):
             url = self.LOGIN_FORM_URL
             headers = {"Content-type": "application/json"}
             data = {"email": username, "password": password}
-            response = requests.get(url, headers=headers, cookies=cookies)
+            response = self.session.get(url, headers=headers, cookies=cookies)
             _LOGGER.debug(f"{DOMAIN} - Sign In Response: {response}")
 
             url_redirect = response.url
@@ -1234,7 +1235,7 @@ class KiaUvoApiEU(ApiImplType1):
                 "_csrf": "",
             }
 
-            response = requests.post(
+            response = self.session.post(
                 url, headers=headers, data=data, allow_redirects=False
             )
             location = response.headers["Location"]
@@ -1245,7 +1246,7 @@ class KiaUvoApiEU(ApiImplType1):
     def _get_authorization_code_with_form(self, username, password, cookies) -> str:
         url = self.USER_API_URL + "integrationinfo"
         headers = {"User-Agent": USER_AGENT_MOZILLA}
-        response = requests.get(url, headers=headers, cookies=cookies)
+        response = self.session.get(url, headers=headers, cookies=cookies)
         cookies = cookies | response.cookies.get_dict()
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - IntegrationInfo Response: {response}")
@@ -1256,7 +1257,7 @@ class KiaUvoApiEU(ApiImplType1):
         login_form_url = login_form_url.replace("$service_id", service_id)
         login_form_url = login_form_url.replace("$user_id", user_id)
 
-        response = requests.get(login_form_url, headers=headers, cookies=cookies)
+        response = self.session.get(login_form_url, headers=headers, cookies=cookies)
         cookies = cookies | response.cookies.get_dict()
         _LOGGER.debug(
             f"{DOMAIN} - LoginForm {login_form_url} - Response: {response.text}"
@@ -1274,7 +1275,7 @@ class KiaUvoApiEU(ApiImplType1):
             "Content-Type": "application/x-www-form-urlencoded",
             "User-Agent": USER_AGENT_MOZILLA,
         }
-        response = requests.post(
+        response = self.session.post(
             login_form_action_url,
             data=data,
             headers=headers,
@@ -1293,7 +1294,7 @@ class KiaUvoApiEU(ApiImplType1):
 
         redirect_url = response.headers["Location"]
         headers = {"User-Agent": USER_AGENT_MOZILLA}
-        response = requests.get(redirect_url, headers=headers, cookies=cookies)
+        response = self.session.get(redirect_url, headers=headers, cookies=cookies)
         cookies = cookies | response.cookies.get_dict()
         _LOGGER.debug(
             f"{DOMAIN} - Redirect User Id {redirect_url} - Response {response.url} - {response.text}"  # noqa
@@ -1308,7 +1309,7 @@ class KiaUvoApiEU(ApiImplType1):
                 "User-Agent": USER_AGENT_MOZILLA,
                 "followRedirects": "false",
             }
-            response = requests.post(
+            response = self.session.post(
                 login_form_action_url,
                 data=data,
                 headers=headers,
@@ -1329,7 +1330,7 @@ class KiaUvoApiEU(ApiImplType1):
             "User-Agent": USER_AGENT_MOZILLA,
             "ccsp-service-id": self.CCSP_SERVICE_ID,
         }
-        response = requests.post(
+        response = self.session.post(
             url,
             headers=headers,
             json={"intUserId": "0"},
@@ -1349,7 +1350,7 @@ class KiaUvoApiEU(ApiImplType1):
             "client_secret": self.CCS_SERVICE_SECRET,
         }
 
-        response = requests.post(url, data=data, allow_redirects=False)
+        response = self.session.post(url, data=data, allow_redirects=False)
 
         response = response.json()
         _LOGGER.debug(f"{DOMAIN} - Get Access Token Response: {response}")
@@ -1378,7 +1379,7 @@ class KiaUvoApiEU(ApiImplType1):
             "grant_type=refresh_token&redirect_uri=https%3A%2F%2Fwww.getpostman.com%2Foauth2%2Fcallback&refresh_token="  # noqa
             + authorization_code
         )
-        response = requests.post(url, data=data, headers=headers)
+        response = self.session.post(url, data=data, headers=headers)
         response = response.json()
         token_type = response["token_type"]
         refresh_token = token_type + " " + response["access_token"]
