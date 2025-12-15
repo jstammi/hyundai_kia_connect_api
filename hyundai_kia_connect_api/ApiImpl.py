@@ -3,6 +3,7 @@
 # pylint:disable=unnecessary-pass,missing-class-docstring,invalid-name,missing-function-docstring,wildcard-import,unused-wildcard-import,unused-argument,missing-timeout,logging-fstring-interpolation
 import datetime as dt
 import logging
+import typing as ty
 from dataclasses import dataclass
 
 import requests
@@ -78,6 +79,7 @@ class ApiImpl:
     temperature_range = None
     previous_latitude: float = None
     previous_longitude: float = None
+    supports_otp: bool = False
     session : requests.Session = None
 
     def __init__(self) -> None:
@@ -90,7 +92,13 @@ class ApiImpl:
             session.hooks['response'].extend(self.session.hooks['response'])
         return session
 
-    def login(self, username: str, password: str) -> Token:
+    def login(
+        self,
+        username: str,
+        password: str,
+        token: Token | None = None,
+        otp_handler: ty.Callable[[dict], dict] | None = None,
+    ) -> Token:
         """Login into cloud endpoints and return Token"""
         pass
 
