@@ -160,6 +160,17 @@ class VehicleManager:
         else:
             _LOGGER.debug(f"{DOMAIN} - Vehicle Disabled, skipping.")
 
+    def force_refresh_all_vehicles_location(self) -> None:
+        for vehicle_id in self.vehicles.keys():
+            self.force_refresh_vehicle_location(vehicle_id)
+
+    def force_refresh_vehicle_location(self, vehicle_id: str) -> None:
+        vehicle = self.get_vehicle(vehicle_id)
+        if vehicle.enabled:
+            self.api.force_refresh_vehicle_location(self.token, vehicle)
+        else:
+            _LOGGER.debug(f"{DOMAIN} - Vehicle Disabled, skipping.")
+
     def check_and_refresh_token(self) -> bool:
         if self.token is None:
             self.initialize()

@@ -293,6 +293,11 @@ class KiaUvoApiEU(ApiImplType1):
             else:
                 self._update_vehicle_drive_info(vehicle, state)
 
+    def force_refresh_vehicle_location(self, token: Token, vehicle: Vehicle) -> None:
+        state = vehicle.data
+        state["vehicleLocation"] = self._get_location(token, vehicle)
+        self._update_vehicle_properties(vehicle, state)
+
     def _update_vehicle_properties(self, vehicle: Vehicle, state: dict) -> None:
         if get_child_value(state, "vehicleStatus.time"):
             vehicle.last_updated_at = parse_datetime(

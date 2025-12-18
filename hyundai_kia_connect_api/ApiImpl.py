@@ -134,6 +134,10 @@ class ApiImpl:
         """Triggers the system to contact the car and get fresh data"""
         pass
 
+    def force_refresh_vehicle_location(self, token: Token, vehicle: Vehicle) -> None:
+        """Triggers the system to contact the car and get fresh data"""
+        pass
+
     def update_geocoded_location(
         self,
         token: Token,
