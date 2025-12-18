@@ -128,8 +128,8 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
         self,
         username: str,
         password: str,
-        token: Token | None = None,
         otp_handler: ty.Callable[[dict], dict] | None = None,
+        pin: str | None = None,
     ) -> Token:
         # Sign In with Email and Password and Get Authorization Code
         url = self.LOGIN_API + "oauth/token"
@@ -152,6 +152,7 @@ class HyundaiBlueLinkApiUSA(ApiImpl):
             access_token=access_token,
             refresh_token=refresh_token,
             valid_until=valid_until,
+            pin=pin,
         )
 
     def _get_vehicle_details(self, token: Token, vehicle: Vehicle):
